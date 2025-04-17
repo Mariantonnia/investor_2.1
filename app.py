@@ -111,6 +111,7 @@ if "historial" not in st.session_state:
     st.session_state.pregunta_pendiente = False
     st.session_state.mostrar_cuestionario = False
     st.session_state.cuestionario_enviado = False
+    st.session_state.perfil_valores = {}
 
 # Interfaz
 st.title("Chatbot de Análisis de Inversor ESG")
@@ -176,16 +177,16 @@ else:
         analisis_total = "\n".join(st.session_state.reacciones)
         perfil = cadena_perfil.run(analisis=analisis_total)
 
-        with st.chat_message("bot", avatar="🤖"):
-            st.write(f"**Perfil del inversor:** {perfil}")
-        st.session_state.historial.append({"tipo": "bot", "contenido": f"**Perfil del inversor:** {perfil}"})
-
         puntuaciones = {
             "Ambiental": int(re.search(r"Ambiental: (\d+)", perfil).group(1)),
             "Social": int(re.search(r"Social: (\d+)", perfil).group(1)),
             "Gobernanza": int(re.search(r"Gobernanza: (\d+)", perfil).group(1)),
             "Riesgo": int(re.search(r"Riesgo: (\d+)", perfil).group(1)),
         }
+        st.session_state.perfil_valores = puntuaciones
+
+        with st.chat_message("bot", avatar="🤖"):
+            st.write(f"**Perfil del inversor:** {perfil}")
 
         fig, ax = plt.subplots()
         ax.bar(puntuaciones.keys(), puntuaciones.values(), color="skyblue")
@@ -196,11 +197,7 @@ else:
         st.session_state.mostrar_cuestionario = True
         st.markdown("""
         <script>
-        document.addEventListener("DOMContentLoaded", function() {
-          setTimeout(function() {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-          }, 500);
-        });
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         </script>
         """, unsafe_allow_html=True)
 
@@ -239,6 +236,10 @@ else:
                     sheet = client.open('BBDD_RESPUESTAS').sheet1
 
                     fila = st.session_state.reacciones + [
+                        str(st.session_state.perfil_valores.get("Ambiental", "")),
+                        str(st.session_state.perfil_valores.get("Social", "")),
+                        str(st.session_state.perfil_valores.get("Gobernanza", "")),
+                        str(st.session_state.perfil_valores.get("Riesgo", "")),
                         objetivo or "", horizonte or "", productos_str, volatilidad or "", largo_plazo or "",
                         frecuencia or "", experiencia or "", reaccion_20 or "", combinacion or "",
                         sostenibilidad or "", fondo_clima or "", importancia or ""
