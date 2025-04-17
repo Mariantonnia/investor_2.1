@@ -37,11 +37,6 @@ noticias = [
     "Amancio Ortega crea un fondo de 100 millones de euros para los afectados de la dana",
     "Freshly Cosmetics despide a 52 empleados en Reus, el 18% de la plantilla",
     "Wall Street y los mercados globales caen ante la incertidumbre por la guerra comercial y el temor a una recesión",
-    "El mercado de criptomonedas se desploma: Bitcoin cae a 80.000 dólares, las altcoins se hunden en medio de una frenética liquidación",
-    "Granada retrasa seis meses el inicio de la Zona de Bajas Emisiones, previsto hasta ahora para abril",
-    "McDonald's donará a la Fundación Ronald McDonald todas las ganancias por ventas del Big Mac del 6 de diciembre",
-    "El Gobierno autoriza a altos cargos públicos a irse a Indra, Escribano, CEOE, Barceló, Iberdrola o Airbus",
-    "Las aportaciones a los planes de pensiones caen 10.000 millones en los últimos cuatro años",
 ]
 
 # Plantillas de LLM
@@ -203,42 +198,80 @@ else:
     except Exception as e:
         st.error(f"Error al guardar datos: {str(e)}")
 
-    # Mostrar cuestionario final
-    st.header("📋 Cuestionario Final de Perfil Inversor")
+# Mostrar cuestionario final
+st.header("📋 Cuestionario Final de Perfil Inversor")
 
-    st.subheader("2. Objetivos de Inversión")
-    st.radio("2.1. ¿Cuál es tu objetivo principal al invertir?",
-             ["Preservar el capital (bajo riesgo)", "Obtener rentabilidad moderada", "Maximizar la rentabilidad (alto riesgo)"])
-    st.radio("2.2. ¿Cuál es tu horizonte temporal de inversión?",
-             ["Menos de 1 año", "Entre 1 y 5 años", "Más de 5 años"])
+# Variables para almacenar respuestas
+cuestionario = {}
 
-    st.subheader("3. Conocimientos Financieros")
-    st.multiselect("3.1. ¿Qué productos financieros conoces o has utilizado?",
-                   ["Cuentas de ahorro", "Fondos de inversión", "Acciones", "Bonos", "Derivados (futuros, opciones, CFD)", "Criptomonedas"])
-    st.radio("3.2. ¿Qué significa que una inversión tenga alta volatilidad?",
-             ["Que tiene una rentabilidad garantizada", "Que su valor puede subir o bajar de forma significativa", "Que no se puede vender fácilmente"])
-    st.radio("3.3. ¿Qué ocurre si mantienes una inversión en renta variable durante un largo periodo?",
-             ["Siempre pierdes dinero", "Se reduce el riesgo en comparación con el corto plazo", "No afecta en nada al riesgo"])
+st.subheader("2. Objetivos de Inversión")
+cuestionario["objetivo"] = st.radio("2.1. ¿Cuál es tu objetivo principal al invertir?",
+    ["Preservar el capital (bajo riesgo)", "Obtener rentabilidad moderada", "Maximizar la rentabilidad (alto riesgo)"],
+    index=None)  # NUEVO
 
-    st.subheader("4. Experiencia en Inversión")
-    st.radio("4.1. ¿Con qué frecuencia realizas inversiones o compras productos financieros?",
-             ["Nunca", "Ocasionalmente (1 vez al año)", "Regularmente (varias veces al año)"])
-    st.radio("4.2. ¿Cuántos años llevas invirtiendo en productos financieros complejos?",
-             ["Ninguno", "Menos de 2 años", "Más de 2 años"])
+cuestionario["horizonte"] = st.radio("2.2. ¿Cuál es tu horizonte temporal de inversión?",
+    ["Menos de 1 año", "Entre 1 y 5 años", "Más de 5 años"],
+    index=None)  # NUEVO
 
-    st.subheader("5. Perfil de Riesgo")
-    st.radio("5.1. ¿Qué harías si tu inversión pierde un 20% en un mes?",
-             ["Vendería todo inmediatamente", "Esperaría a ver si se recupera", "Invertiría más, aprovechando la caída"])
-    st.radio("5.2. ¿Cuál de las siguientes combinaciones preferirías?",
-             ["Rentabilidad esperada 2%, riesgo muy bajo", "Rentabilidad esperada 5%, riesgo moderado", "Rentabilidad esperada 10%, riesgo alto"])
+st.subheader("3. Conocimientos Financieros")
+cuestionario["productos"] = st.multiselect("3.1. ¿Qué productos financieros conoces o has utilizado?",
+    ["Cuentas de ahorro", "Fondos de inversión", "Acciones", "Bonos", "Derivados (futuros, opciones, CFD)", "Criptomonedas"])
 
-    st.subheader("6. Preferencias de Sostenibilidad (SFDR)")
-    st.radio("6.1. ¿Te interesa que tus inversiones consideren criterios de sostenibilidad?",
-             ["Sí", "No", "No lo sé"])
-    st.radio("6.2. ¿Preferirías un fondo que invierte en empresas que luchan contra el cambio climático aunque la rentabilidad pueda ser algo menor?",
-             ["Sí", "No"])
-    st.radio("6.3. ¿Qué importancia das a que tus inversiones no financien sectores controvertidos?",
-             ["Alta", "Media", "Baja"])
+cuestionario["volatilidad"] = st.radio("3.2. ¿Qué significa que una inversión tenga alta volatilidad?",
+    ["Que tiene una rentabilidad garantizada", "Que su valor puede subir o bajar de forma significativa", "Que no se puede vender fácilmente"],
+    index=None)  # NUEVO
+
+cuestionario["largo_plazo"] = st.radio("3.3. ¿Qué ocurre si mantienes una inversión en renta variable durante un largo periodo?",
+    ["Siempre pierdes dinero", "Se reduce el riesgo en comparación con el corto plazo", "No afecta en nada al riesgo"],
+    index=None)  # NUEVO
+
+st.subheader("4. Experiencia en Inversión")
+cuestionario["frecuencia"] = st.radio("4.1. ¿Con qué frecuencia realizas inversiones o compras productos financieros?",
+    ["Nunca", "Ocasionalmente (1 vez al año)", "Regularmente (varias veces al año)"],
+    index=None)  # NUEVO
+
+cuestionario["experiencia"] = st.radio("4.2. ¿Cuántos años llevas invirtiendo en productos financieros complejos?",
+    ["Ninguno", "Menos de 2 años", "Más de 2 años"],
+    index=None)  # NUEVO
+
+st.subheader("5. Perfil de Riesgo")
+cuestionario["caida"] = st.radio("5.1. ¿Qué harías si tu inversión pierde un 20% en un mes?",
+    ["Vendería todo inmediatamente", "Esperaría a ver si se recupera", "Invertiría más, aprovechando la caída"],
+    index=None)  # NUEVO
+
+cuestionario["rentabilidad_riesgo"] = st.radio("5.2. ¿Cuál de las siguientes combinaciones preferirías?",
+    ["Rentabilidad esperada 2%, riesgo muy bajo", "Rentabilidad esperada 5%, riesgo moderado", "Rentabilidad esperada 10%, riesgo alto"],
+    index=None)  # NUEVO
+
+st.subheader("6. Preferencias de Sostenibilidad (SFDR)")
+cuestionario["sfdr_interes"] = st.radio("6.1. ¿Te interesa que tus inversiones consideren criterios de sostenibilidad?",
+    ["Sí", "No", "No lo sé"],
+    index=None)  # NUEVO
+
+cuestionario["sfdr_clima"] = st.radio("6.2. ¿Preferirías un fondo que invierte en empresas que luchan contra el cambio climático aunque la rentabilidad pueda ser algo menor?",
+    ["Sí", "No"],
+    index=None)  # NUEVO
+
+cuestionario["sectores_controv"] = st.radio("6.3. ¿Qué importancia das a que tus inversiones no financien sectores controvertidos?",
+    ["Alta", "Media", "Baja"],
+    index=None)  # NUEVO
+
+# Botón para guardar todo
+if st.button("💾 Enviar y guardar todo"):  # NUEVO
+    try:
+        creds_json_str = st.secrets["gcp_service_account"]
+        creds_json = json.loads(creds_json_str)
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
+        client = gspread.authorize(creds)
+        sheet = client.open('BBDD_RESPUESTAS').sheet1
+
+        fila = st.session_state.reacciones + list(puntuaciones.values()) + list(cuestionario.values())
+        sheet.append_row(fila)
+
+        st.success("✅ Todos los datos han sido guardados exitosamente.")
+    except Exception as e:
+        st.error(f"❌ Error al guardar datos: {str(e)}")
 
 # Mantener foco en el input
 st.markdown("""
