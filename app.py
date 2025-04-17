@@ -98,7 +98,6 @@ def procesar_respuesta_valida(user_input):
         st.session_state.mostrada_noticia = False
         st.session_state.contador_preguntas = 0
         st.session_state.pregunta_pendiente = False
-        st.rerun()
 
 # Inicializar estados
 if "historial" not in st.session_state:
@@ -120,7 +119,8 @@ st.markdown("""
 **Al final, completarás un test tradicional de perfilado.**
 """)
 
-# Mostrar historial
+# Mostrar historial completo en todo momento
+st.write("### Historial de la conversación")
 for mensaje in st.session_state.historial:
     with st.chat_message(mensaje["tipo"], avatar="🤖" if mensaje["tipo"] == "bot" else None):
         st.write(mensaje["contenido"])
@@ -138,16 +138,15 @@ if st.session_state.pregunta_general_idx < len(preguntas_inversor):
         st.session_state.historial.append({"tipo": "user", "contenido": user_input})
         st.session_state.reacciones.append(user_input)
         st.session_state.pregunta_general_idx += 1
-        st.rerun()
 
 # Noticias ESG
 elif st.session_state.contador < len(noticias):
     if not st.session_state.mostrada_noticia:
         noticia = noticias[st.session_state.contador]
-        texto_noticia = f"¿Qué opinas sobre esta noticia? {noticia}"
+        texto_noticia = f"**Noticia para analizar:** {noticia}\n\n¿Qué opinas sobre esta noticia?"
         st.session_state.historial.append({"tipo": "bot", "contenido": texto_noticia})
         with st.chat_message("bot", avatar="🤖"):
-            st.write(texto_noticia)
+            st.markdown(texto_noticia)
         st.session_state.mostrada_noticia = True
 
     user_input = st.chat_input("Escribe tu respuesta aquí...")
@@ -159,7 +158,6 @@ elif st.session_state.contador < len(noticias):
             st.session_state.mostrada_noticia = False
             st.session_state.contador_preguntas = 0
             st.session_state.pregunta_pendiente = False
-            st.rerun()
         else:
             evaluacion = cadena_evaluacion.run(respuesta=user_input).strip().lower()
             if evaluacion == "false":
@@ -185,6 +183,11 @@ else:
         }
         st.session_state.perfil_valores = puntuaciones
 
+        st.write("### Historial completo de la conversación")
+        for mensaje in st.session_state.historial:
+            with st.chat_message(mensaje["tipo"], avatar="🤖" if mensaje["tipo"] == "bot" else None):
+                st.write(mensaje["contenido"])
+
         with st.chat_message("bot", avatar="🤖"):
             st.write(f"**Perfil del inversor:** {perfil}")
 
@@ -195,11 +198,6 @@ else:
         st.pyplot(fig)
 
         st.session_state.mostrar_cuestionario = True
-        st.markdown("""
-        <script>
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        </script>
-        """, unsafe_allow_html=True)
 
     if st.session_state.mostrar_cuestionario:
         st.header("Cuestionario Final de Perfilado")
