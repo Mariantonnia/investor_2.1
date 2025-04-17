@@ -109,9 +109,15 @@ if "historial" not in st.session_state:
     st.session_state.contador_preguntas = 0
     st.session_state.pregunta_general_idx = 0
     st.session_state.pregunta_pendiente = False
+    st.session_state.mostrar_cuestionario = False
+    st.session_state.cuestionario_enviado = False
 
 # Interfaz
 st.title("Chatbot de Análisis de Inversor ESG")
+st.markdown("""
+**Primero interactuarás con un chatbot para evaluar tu perfil ESG.** 
+**Al final, completarás un test tradicional de perfilado.**
+""")
 
 # Mostrar historial
 for mensaje in st.session_state.historial:
@@ -164,85 +170,82 @@ elif st.session_state.contador < len(noticias):
             else:
                 procesar_respuesta_valida(user_input)
 
-# Perfil final
+# Perfil final y test tradicional
 else:
-    analisis_total = "\n".join(st.session_state.reacciones)
-    perfil = cadena_perfil.run(analisis=analisis_total)
+    if not st.session_state.mostrar_cuestionario:
+        analisis_total = "\n".join(st.session_state.reacciones)
+        perfil = cadena_perfil.run(analisis=analisis_total)
 
-    with st.chat_message("bot", avatar="🤖"):
-        st.write(f"**Perfil del inversor:** {perfil}")
-    st.session_state.historial.append({"tipo": "bot", "contenido": f"**Perfil del inversor:** {perfil}"})
+        with st.chat_message("bot", avatar="🤖"):
+            st.write(f"**Perfil del inversor:** {perfil}")
+        st.session_state.historial.append({"tipo": "bot", "contenido": f"**Perfil del inversor:** {perfil}"})
 
-    puntuaciones = {
-        "Ambiental": int(re.search(r"Ambiental: (\d+)", perfil).group(1)),
-        "Social": int(re.search(r"Social: (\d+)", perfil).group(1)),
-        "Gobernanza": int(re.search(r"Gobernanza: (\d+)", perfil).group(1)),
-        "Riesgo": int(re.search(r"Riesgo: (\d+)", perfil).group(1)),
-    }
+        puntuaciones = {
+            "Ambiental": int(re.search(r"Ambiental: (\d+)", perfil).group(1)),
+            "Social": int(re.search(r"Social: (\d+)", perfil).group(1)),
+            "Gobernanza": int(re.search(r"Gobernanza: (\d+)", perfil).group(1)),
+            "Riesgo": int(re.search(r"Riesgo: (\d+)", perfil).group(1)),
+        }
 
-    fig, ax = plt.subplots()
-    ax.bar(puntuaciones.keys(), puntuaciones.values(), color="skyblue")
-    ax.set_ylabel("Puntuación (0-100)")
-    ax.set_title("Perfil del Inversor")
-    st.pyplot(fig)
+        fig, ax = plt.subplots()
+        ax.bar(puntuaciones.keys(), puntuaciones.values(), color="skyblue")
+        ax.set_ylabel("Puntuación (0-100)")
+        ax.set_title("Perfil del Inversor")
+        st.pyplot(fig)
 
-    st.header("📋 Cuestionario Final de Perfil Inversor")
-    cuestionario = {}
+        st.session_state.mostrar_cuestionario = True
 
-    st.subheader("2. Objetivos de Inversión")
-    cuestionario["objetivo"] = st.radio("2.1. ¿Cuál es tu objetivo principal al invertir?",
-        ["Preservar el capital (bajo riesgo)", "Obtener rentabilidad moderada", "Maximizar la rentabilidad (alto riesgo)"], index=None)
-    cuestionario["horizonte"] = st.radio("2.2. ¿Cuál es tu horizonte temporal de inversión?",
-        ["Menos de 1 año", "Entre 1 y 5 años", "Más de 5 años"], index=None)
+    if st.session_state.mostrar_cuestionario:
+        st.header("Cuestionario Final de Perfilado")
 
-    st.subheader("3. Conocimientos Financieros")
-    cuestionario["productos"] = st.multiselect("3.1. ¿Qué productos financieros conoces o has utilizado?",
-        ["Cuentas de ahorro", "Fondos de inversión", "Acciones", "Bonos", "Derivados (futuros, opciones, CFD)", "Criptomonedas"])
-    cuestionario["volatilidad"] = st.radio("3.2. ¿Qué significa que una inversión tenga alta volatilidad?",
-        ["Que tiene una rentabilidad garantizada", "Que su valor puede subir o bajar de forma significativa", "Que no se puede vender fácilmente"], index=None)
-    cuestionario["largo_plazo"] = st.radio("3.3. ¿Qué ocurre si mantienes una inversión en renta variable durante un largo periodo?",
-        ["Siempre pierdes dinero", "Se reduce el riesgo en comparación con el corto plazo", "No afecta en nada al riesgo"], index=None)
+        with st.form("formulario_final"):
+            objetivo = st.radio("2.1. ¿Cuál es tu objetivo principal al invertir?", ["Preservar el capital (bajo riesgo)", "Obtener rentabilidad moderada", "Maximizar la rentabilidad (alto riesgo)"], index=None)
+            horizonte = st.radio("2.2. ¿Cuál es tu horizonte temporal de inversión?", ["Menos de 1 año", "Entre 1 y 5 años", "Más de 5 años"], index=None)
 
-    st.subheader("4. Experiencia en Inversión")
-    cuestionario["frecuencia"] = st.radio("4.1. ¿Con qué frecuencia realizas inversiones o compras productos financieros?",
-        ["Nunca", "Ocasionalmente (1 vez al año)", "Regularmente (varias veces al año)"], index=None)
-    cuestionario["experiencia"] = st.radio("4.2. ¿Cuántos años llevas invirtiendo en productos financieros complejos?",
-        ["Ninguno", "Menos de 2 años", "Más de 2 años"], index=None)
+            productos = st.multiselect("3.1. ¿Qué productos financieros conoces o has utilizado?", ["Cuentas de ahorro", "Fondos de inversión", "Acciones", "Bonos", "Derivados (futuros, opciones, CFD)", "Criptomonedas"])
+            volatilidad = st.radio("3.2. ¿Qué significa que una inversión tenga alta volatilidad?", ["Que tiene una rentabilidad garantizada", "Que su valor puede subir o bajar de forma significativa", "Que no se puede vender fácilmente"], index=None)
+            largo_plazo = st.radio("3.3. ¿Qué ocurre si mantienes una inversión en renta variable durante un largo periodo?", ["Siempre pierdes dinero", "Se reduce el riesgo en comparación con el corto plazo", "No afecta en nada al riesgo"], index=None)
 
-    st.subheader("5. Perfil de Riesgo")
-    cuestionario["caida"] = st.radio("5.1. ¿Qué harías si tu inversión pierde un 20% en un mes?",
-        ["Vendería todo inmediatamente", "Esperaría a ver si se recupera", "Invertiría más, aprovechando la caída"], index=None)
-    cuestionario["rentabilidad_riesgo"] = st.radio("5.2. ¿Cuál de las siguientes combinaciones preferirías?",
-        ["Rentabilidad esperada 2%, riesgo muy bajo", "Rentabilidad esperada 5%, riesgo moderado", "Rentabilidad esperada 10%, riesgo alto"], index=None)
+            frecuencia = st.radio("4.1. ¿Con qué frecuencia realizas inversiones?", ["Nunca", "Ocasionalmente (1 vez al año)", "Regularmente (varias veces al año)"], index=None)
+            experiencia = st.radio("4.2. ¿Cuántos años llevas invirtiendo en productos financieros complejos?", ["Ninguno", "Menos de 2 años", "Más de 2 años"], index=None)
 
-    st.subheader("6. Preferencias de Sostenibilidad (SFDR)")
-    cuestionario["sfdr_interes"] = st.radio("6.1. ¿Te interesa que tus inversiones consideren criterios de sostenibilidad?",
-        ["Sí", "No", "No lo sé"], index=None)
-    cuestionario["sfdr_clima"] = st.radio("6.2. ¿Preferirías un fondo que invierte en empresas que luchan contra el cambio climático aunque la rentabilidad pueda ser algo menor?",
-        ["Sí", "No"], index=None)
-    cuestionario["sectores_controv"] = st.radio("6.3. ¿Qué importancia das a que tus inversiones no financien sectores controvertidos?",
-        ["Alta", "Media", "Baja"], index=None)
+            reaccion_20 = st.radio("5.1. ¿Qué harías si tu inversión pierde un 20% en un mes?", ["Vendería todo inmediatamente", "Esperaría a ver si se recupera", "Invertiría más, aprovechando la caída"], index=None)
+            combinacion = st.radio("5.2. ¿Cuál de las siguientes combinaciones preferirías?", ["Rentabilidad esperada 2%, riesgo muy bajo", "Rentabilidad esperada 5%, riesgo moderado", "Rentabilidad esperada 10%, riesgo alto"], index=None)
 
-    if st.button("📎 Enviar y guardar todo"):
-        try:
-            creds_json_str = st.secrets["gcp_service_account"]
-            creds_json = json.loads(creds_json_str)
-            scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
-            client = gspread.authorize(creds)
-            sheet = client.open('BBDD_RESPUESTAS').sheet1
+            sostenibilidad = st.radio("6.1. ¿Te interesa que tus inversiones consideren criterios de sostenibilidad?", ["Sí", "No", "No lo sé"], index=None)
+            fondo_clima = st.radio("6.2. ¿Preferirías un fondo que invierte en empresas contra el cambio climático aunque la rentabilidad sea menor?", ["Sí", "No"], index=None)
+            importancia = st.radio("6.3. ¿Qué importancia das a no financiar sectores controvertidos?", ["Alta", "Media", "Baja"], index=None)
 
-            fila = st.session_state.reacciones + list(puntuaciones.values()) + list(cuestionario.values())
-            sheet.append_row(fila)
-            st.success("✅ Todos los datos han sido guardados exitosamente.")
-        except Exception as e:
-            st.error(f"❌ Error al guardar datos: {str(e)}")
+            enviar = st.form_submit_button("Enviar respuestas")
 
+            if enviar:
+                try:
+                    creds_json_str = st.secrets["gcp_service_account"]
+                    creds_json = json.loads(creds_json_str)
+                    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+                    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
+                    client = gspread.authorize(creds)
+                    sheet = client.open('BBDD_RESPUESTAS').sheet1
+
+                    fila = st.session_state.reacciones + [
+                        objetivo, horizonte, ", ".join(productos), volatilidad, largo_plazo,
+                        frecuencia, experiencia, reaccion_20, combinacion,
+                        sostenibilidad, fondo_clima, importancia
+                    ]
+
+                    sheet.append_row(fila)
+                    st.success("Respuestas enviadas y guardadas exitosamente")
+                    st.session_state.cuestionario_enviado = True
+                    st.balloons()
+                except Exception as e:
+                    st.error(f"❌ Error al guardar datos: {str(e)}")
+
+        if st.session_state.cuestionario_enviado:
+            st.markdown("### ¡Gracias por completar tu perfil de inversor!")
+
+# Evitar scroll hacia arriba al pasar al cuestionario
 st.markdown("""
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.querySelector('.stChatInput textarea');
-    if(input) input.focus();
-});
+window.scrollTo(0, document.body.scrollHeight);
 </script>
 """, unsafe_allow_html=True)
