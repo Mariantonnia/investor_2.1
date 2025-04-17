@@ -38,7 +38,11 @@ noticias = [
     "Freshly Cosmetics despide a 52 empleados en Reus, el 18% de la plantilla",
     "Wall Street y los mercados globales caen ante la incertidumbre por la guerra comercial y el temor a una recesión",
     "El mercado de criptomonedas se desploma: Bitcoin cae a 80.000 dólares, las altcoins se hunden en medio de una frenética liquidación",
-   ]
+    "Granada retrasa seis meses el inicio de la Zona de Bajas Emisiones, previsto hasta ahora para abril",
+    "McDonald's donará a la Fundación Ronald McDonald todas las ganancias por ventas del Big Mac del 6 de diciembre",
+    "El Gobierno autoriza a altos cargos públicos a irse a Indra, Escribano, CEOE, Barceló, Iberdrola o Airbus",
+    "Las aportaciones a los planes de pensiones caen 10.000 millones en los últimos cuatro años",
+]
 
 # Plantillas de LLM
 plantilla_evaluacion = """
@@ -190,6 +194,15 @@ else:
         st.pyplot(fig)
 
         st.session_state.mostrar_cuestionario = True
+        st.markdown("""
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          setTimeout(function() {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+          }, 500);
+        });
+        </script>
+        """, unsafe_allow_html=True)
 
     if st.session_state.mostrar_cuestionario:
         st.header("Cuestionario Final de Perfilado")
@@ -199,6 +212,8 @@ else:
             horizonte = st.radio("2.2. ¿Cuál es tu horizonte temporal de inversión?", ["Menos de 1 año", "Entre 1 y 5 años", "Más de 5 años"], index=None)
 
             productos = st.multiselect("3.1. ¿Qué productos financieros conoces o has utilizado?", ["Cuentas de ahorro", "Fondos de inversión", "Acciones", "Bonos", "Derivados (futuros, opciones, CFD)", "Criptomonedas"])
+            productos_str = ", ".join(productos) if productos else ""
+
             volatilidad = st.radio("3.2. ¿Qué significa que una inversión tenga alta volatilidad?", ["Que tiene una rentabilidad garantizada", "Que su valor puede subir o bajar de forma significativa", "Que no se puede vender fácilmente"], index=None)
             largo_plazo = st.radio("3.3. ¿Qué ocurre si mantienes una inversión en renta variable durante un largo periodo?", ["Siempre pierdes dinero", "Se reduce el riesgo en comparación con el corto plazo", "No afecta en nada al riesgo"], index=None)
 
@@ -224,9 +239,9 @@ else:
                     sheet = client.open('BBDD_RESPUESTAS').sheet1
 
                     fila = st.session_state.reacciones + [
-                        objetivo, horizonte, ", ".join(productos), volatilidad, largo_plazo,
-                        frecuencia, experiencia, reaccion_20, combinacion,
-                        sostenibilidad, fondo_clima, importancia
+                        objetivo or "", horizonte or "", productos_str, volatilidad or "", largo_plazo or "",
+                        frecuencia or "", experiencia or "", reaccion_20 or "", combinacion or "",
+                        sostenibilidad or "", fondo_clima or "", importancia or ""
                     ]
 
                     sheet.append_row(fila)
@@ -238,10 +253,3 @@ else:
 
         if st.session_state.cuestionario_enviado:
             st.markdown("### ¡Gracias por completar tu perfil de inversor!")
-
-# Evitar scroll hacia arriba al pasar al cuestionario
-st.markdown("""
-<script>
-window.scrollTo(0, document.body.scrollHeight);
-</script>
-""", unsafe_allow_html=True)
