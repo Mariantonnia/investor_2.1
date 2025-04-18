@@ -105,7 +105,6 @@ if "historial" not in st.session_state:
     st.session_state.contador_preguntas = 0
     st.session_state.pregunta_general_idx = 0
     st.session_state.pregunta_pendiente = False
-    st.session_state.mostrar_cuestionario = False
     st.session_state.cuestionario_enviado = False
     st.session_state.perfil_valores = {}
 
@@ -169,7 +168,8 @@ elif st.session_state.contador < len(noticias):
 
 # Perfil final y test tradicional
 else:
-    if not st.session_state.mostrar_cuestionario:
+    # Generar perfil (si no está ya generado)
+    if not st.session_state.perfil_valores:
         analisis_total = "\n".join(st.session_state.reacciones)
         perfil = cadena_perfil.run(analisis=analisis_total)
 
@@ -181,49 +181,65 @@ else:
         }
         st.session_state.perfil_valores = puntuaciones
 
-        with st.chat_message("bot", avatar="🤖"):
-            st.write(f"**Perfil del inversor:** {perfil}")
+    # Mostrar perfil y gráfico siempre
+    with st.chat_message("bot", avatar="🤖"):
+        st.write(f"**Perfil del inversor:** Ambiental: {st.session_state.perfil_valores['Ambiental']}, " +
+                f"Social: {st.session_state.perfil_valores['Social']}, " +
+                f"Gobernanza: {st.session_state.perfil_valores['Gobernanza']}, " +
+                f"Riesgo: {st.session_state.perfil_valores['Riesgo']}")
 
-        # Guardar el gráfico en una variable de sesión
-        fig, ax = plt.subplots()
-        ax.bar(puntuaciones.keys(), puntuaciones.values(), color="skyblue")
-        ax.set_ylabel("Puntuación (0-100)")
-        ax.set_title("Perfil del Inversor")
-        st.session_state.perfil_figura = fig  # Guardar figura en el estado de sesión
+    fig, ax = plt.subplots()
+    ax.bar(st.session_state.perfil_valores.keys(), st.session_state.perfil_valores.values(), color="skyblue")
+    ax.set_ylabel("Puntuación (0-100)")
+    ax.set_title("Perfil del Inversor")
+    st.pyplot(fig)
 
-        st.session_state.mostrar_cuestionario = True
-        st.markdown("""
-        <script>
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        </script>
-        """, unsafe_allow_html=True)
-
-    # Mostrar el gráfico desde el estado de sesión si está disponible
-    if "perfil_figura" in st.session_state:
-        st.pyplot(st.session_state.perfil_figura)
-
-    if st.session_state.mostrar_cuestionario:
+    # Mostrar cuestionario si no se ha enviado
+    if not st.session_state.cuestionario_enviado:
         st.header("Cuestionario Final de Perfilado")
 
         with st.form("formulario_final"):
-            objetivo = st.radio("2.1. ¿Cuál es tu objetivo principal al invertir?", ["Preservar el capital (bajo riesgo)", "Obtener rentabilidad moderada", "Maximizar la rentabilidad (alto riesgo)"], index=None)
-            horizonte = st.radio("2.2. ¿Cuál es tu horizonte temporal de inversión?", ["Menos de 1 año", "Entre 1 y 5 años", "Más de 5 años"], index=None)
+            objetivo = st.radio("2.1. ¿Cuál es tu objetivo principal al invertir?", 
+                              ["Preservar el capital (bajo riesgo)", "Obtener rentabilidad moderada", "Maximizar la rentabilidad (alto riesgo)"], 
+                              index=None)
+            horizonte = st.radio("2.2. ¿Cuál es tu horizonte temporal de inversión?", 
+                                ["Menos de 1 año", "Entre 1 y 5 años", "Más de 5 años"], 
+                                index=None)
 
-            productos = st.multiselect("3.1. ¿Qué productos financieros conoces o has utilizado?", ["Cuentas de ahorro", "Fondos de inversión", "Acciones", "Bonos", "Derivados (futuros, opciones, CFD)", "Criptomonedas"])
+            productos = st.multiselect("3.1. ¿Qué productos financieros conoces o has utilizado?", 
+                                     ["Cuentas de ahorro", "Fondos de inversión", "Acciones", "Bonos", "Derivados (futuros, opciones, CFD)", "Criptomonedas"])
             productos_str = ", ".join(productos) if productos else ""
 
-            volatilidad = st.radio("3.2. ¿Qué significa que una inversión tenga alta volatilidad?", ["Que tiene una rentabilidad garantizada", "Que su valor puede subir o bajar de forma significativa", "Que no se puede vender fácilmente"], index=None)
-            largo_plazo = st.radio("3.3. ¿Qué ocurre si mantienes una inversión en renta variable durante un largo periodo?", ["Siempre pierdes dinero", "Se reduce el riesgo en comparación con el corto plazo", "No afecta en nada al riesgo"], index=None)
+            volatilidad = st.radio("3.2. ¿Qué significa que una inversión tenga alta volatilidad?", 
+                                 ["Que tiene una rentabilidad garantizada", "Que su valor puede subir o bajar de forma significativa", "Que no se puede vender fácilmente"], 
+                                 index=None)
+            largo_plazo = st.radio("3.3. ¿Qué ocurre si mantienes una inversión en renta variable durante un largo periodo?", 
+                                  ["Siempre pierdes dinero", "Se reduce el riesgo en comparación con el corto plazo", "No afecta en nada al riesgo"], 
+                                  index=None)
 
-            frecuencia = st.radio("4.1. ¿Con qué frecuencia realizas inversiones?", ["Nunca", "Ocasionalmente (1 vez al año)", "Regularmente (varias veces al año)"], index=None)
-            experiencia = st.radio("4.2. ¿Cuántos años llevas invirtiendo en productos financieros complejos?", ["Ninguno", "Menos de 2 años", "Más de 2 años"], index=None)
+            frecuencia = st.radio("4.1. ¿Con qué frecuencia realizas inversiones?", 
+                                ["Nunca", "Ocasionalmente (1 vez al año)", "Regularmente (varias veces al año)"], 
+                                index=None)
+            experiencia = st.radio("4.2. ¿Cuántos años llevas invirtiendo en productos financieros complejos?", 
+                                 ["Ninguno", "Menos de 2 años", "Más de 2 años"], 
+                                 index=None)
 
-            reaccion_20 = st.radio("5.1. ¿Qué harías si tu inversión pierde un 20% en un mes?", ["Vendería todo inmediatamente", "Esperaría a ver si se recupera", "Invertiría más, aprovechando la caída"], index=None)
-            combinacion = st.radio("5.2. ¿Cuál de las siguientes combinaciones preferirías?", ["Rentabilidad esperada 2%, riesgo muy bajo", "Rentabilidad esperada 5%, riesgo moderado", "Rentabilidad esperada 10%, riesgo alto"], index=None)
+            reaccion_20 = st.radio("5.1. ¿Qué harías si tu inversión pierde un 20% en un mes?", 
+                                  ["Vendería todo inmediatamente", "Esperaría a ver si se recupera", "Invertiría más, aprovechando la caída"], 
+                                  index=None)
+            combinacion = st.radio("5.2. ¿Cuál de las siguientes combinaciones preferirías?", 
+                                 ["Rentabilidad esperada 2%, riesgo muy bajo", "Rentabilidad esperada 5%, riesgo moderado", "Rentabilidad esperada 10%, riesgo alto"], 
+                                 index=None)
 
-            sostenibilidad = st.radio("6.1. ¿Te interesa que tus inversiones consideren criterios de sostenibilidad?", ["Sí", "No", "No lo sé"], index=None)
-            fondo_clima = st.radio("6.2. ¿Preferirías un fondo que invierte en empresas contra el cambio climático aunque la rentabilidad sea menor?", ["Sí", "No"], index=None)
-            importancia = st.radio("6.3. ¿Qué importancia das a no financiar sectores controvertidos?", ["Alta", "Media", "Baja"], index=None)
+            sostenibilidad = st.radio("6.1. ¿Te interesa que tus inversiones consideren criterios de sostenibilidad?", 
+                                     ["Sí", "No", "No lo sé"], 
+                                     index=None)
+            fondo_clima = st.radio("6.2. ¿Preferirías un fondo que invierte en empresas contra el cambio climático aunque la rentabilidad sea menor?", 
+                                 ["Sí", "No"], 
+                                 index=None)
+            importancia = st.radio("6.3. ¿Qué importancia das a no financiar sectores controvertidos?", 
+                                 ["Alta", "Media", "Baja"], 
+                                 index=None)
 
             enviar = st.form_submit_button("Enviar respuestas")
 
@@ -249,9 +265,11 @@ else:
                     sheet.append_row(fila)
                     st.success("Respuestas enviadas y guardadas exitosamente")
                     st.session_state.cuestionario_enviado = True
-                    st.balloons()
+                    st.rerun()  # Refrescar para ocultar el formulario
                 except Exception as e:
                     st.error(f"❌ Error al guardar datos: {str(e)}")
 
-        if st.session_state.cuestionario_enviado:
-            st.markdown("### ¡Gracias por completar tu perfil de inversor!")
+    # Mostrar mensaje final si el cuestionario fue enviado
+    if st.session_state.cuestionario_enviado:
+        st.markdown("### ¡Gracias por completar tu perfil de inversor!")
+        st.balloons()
