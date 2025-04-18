@@ -184,15 +184,17 @@ else:
         with st.chat_message("bot", avatar="🤖"):
             st.write(f"**Perfil del inversor:** {perfil}")
 
-        # Crear el gráfico
-        fig, ax = plt.subplots()
-        ax.bar(puntuaciones.keys(), puntuaciones.values(), color="skyblue")
-        ax.set_ylabel("Puntuación (0-100)")
-        ax.set_title("Perfil del Inversor")
+        # Crear el gráfico solo si no está guardado en session_state
+        if 'figura_perfil' not in st.session_state:
+            fig, ax = plt.subplots()
+            ax.bar(puntuaciones.keys(), puntuaciones.values(), color="skyblue")
+            ax.set_ylabel("Puntuación (0-100)")
+            ax.set_title("Perfil del Inversor")
 
-        # Guardar la figura en session_state para reutilizarla
-        st.session_state.figura_perfil = fig
+            # Guardar la figura en session_state para reutilizarla
+            st.session_state.figura_perfil = fig
 
+        # Mostrar el gráfico guardado
         st.pyplot(st.session_state.figura_perfil)
         st.session_state.mostrar_cuestionario = True
         st.markdown("""
@@ -202,8 +204,8 @@ else:
         """, unsafe_allow_html=True)
 
     if st.session_state.mostrar_cuestionario:
-        # Volver a mostrar el gráfico si existe
-        if "figura_perfil" in st.session_state:
+        # Solo mostrar el gráfico una vez
+        if 'figura_perfil' in st.session_state:
             st.pyplot(st.session_state.figura_perfil)
 
         st.header("Cuestionario Final de Perfilado")
