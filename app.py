@@ -37,11 +37,7 @@ noticias = [
     "Amancio Ortega crea un fondo de 100 millones de euros para los afectados de la dana",
     "Freshly Cosmetics despide a 52 empleados en Reus, el 18% de la plantilla",
     "Wall Street y los mercados globales caen ante la incertidumbre por la guerra comercial y el temor a una recesión",
-    "El mercado de criptomonedas se desploma: Bitcoin cae a 80.000 dólares, las altcoins se hunden en medio de una frenética liquidación",
-    "Granada retrasa seis meses el inicio de la Zona de Bajas Emisiones, previsto hasta ahora para abril",
-    "McDonald's donará a la Fundación Ronald McDonald todas las ganancias por ventas del Big Mac del 6 de diciembre",
-    "El Gobierno autoriza a altos cargos públicos a irse a Indra, Escribano, CEOE, Barceló, Iberdrola o Airbus",
-    "Las aportaciones a los planes de pensiones caen 10.000 millones en los últimos cuatro años",
+    "El mercado de criptomonedas se desploma: Bitcoin cae a 80.000 dólares, las altcoins se hunden en medio de una frenética liquidación"
 ]
 
 # Plantillas de LLM
@@ -188,12 +184,16 @@ else:
         with st.chat_message("bot", avatar="🤖"):
             st.write(f"**Perfil del inversor:** {perfil}")
 
+        # Crear el gráfico
         fig, ax = plt.subplots()
         ax.bar(puntuaciones.keys(), puntuaciones.values(), color="skyblue")
         ax.set_ylabel("Puntuación (0-100)")
         ax.set_title("Perfil del Inversor")
-        st.pyplot(fig)
 
+        # Guardar la figura en session_state para reutilizarla
+        st.session_state.figura_perfil = fig
+
+        st.pyplot(st.session_state.figura_perfil)
         st.session_state.mostrar_cuestionario = True
         st.markdown("""
         <script>
@@ -202,6 +202,10 @@ else:
         """, unsafe_allow_html=True)
 
     if st.session_state.mostrar_cuestionario:
+        # Volver a mostrar el gráfico si existe
+        if "figura_perfil" in st.session_state:
+            st.pyplot(st.session_state.figura_perfil)
+
         st.header("Cuestionario Final de Perfilado")
 
         with st.form("formulario_final"):
