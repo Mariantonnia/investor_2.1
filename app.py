@@ -184,11 +184,12 @@ else:
         with st.chat_message("bot", avatar="🤖"):
             st.write(f"**Perfil del inversor:** {perfil}")
 
+        # Guardar el gráfico en una variable de sesión
         fig, ax = plt.subplots()
         ax.bar(puntuaciones.keys(), puntuaciones.values(), color="skyblue")
         ax.set_ylabel("Puntuación (0-100)")
         ax.set_title("Perfil del Inversor")
-        st.pyplot(fig)
+        st.session_state.perfil_figura = fig  # Guardar figura en el estado de sesión
 
         st.session_state.mostrar_cuestionario = True
         st.markdown("""
@@ -196,6 +197,10 @@ else:
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         </script>
         """, unsafe_allow_html=True)
+
+    # Mostrar el gráfico desde el estado de sesión si está disponible
+    if "perfil_figura" in st.session_state:
+        st.pyplot(st.session_state.perfil_figura)
 
     if st.session_state.mostrar_cuestionario:
         st.header("Cuestionario Final de Perfilado")
