@@ -69,12 +69,10 @@ prompt_reaccion = PromptTemplate(template=plantilla_reaccion, input_variables=["
 cadena_reaccion = LLMChain(llm=llm, prompt=prompt_reaccion)
 
 plantilla_perfil = """
-Análisis de reacciones: {analisis}
-Genera un perfil del inversor basado en ESG (Ambiental, Social y Gobernanza) y aversión al riesgo.
-Asigna puntuaciones de 0 a 100:
-
-Formato:
-Ambiental: [puntuación], Social: [puntuación], Gobernanza: [puntuación], Riesgo: [puntuación]
+Análisis de respuestas: {analisis}
+Genera un perfil detallado del inversor basado en sus respuestas, enfocándote en los pilares ESG (Ambiental, Social y Gobernanza) y su aversión al riesgo. 
+Asigna una puntuación de 0 a 100 para cada pilar ESG y para el riesgo, donde 0 indica ninguna preocupación y 100 máxima preocupación o aversión.
+Devuelve las 4 puntuaciones en formato: Ambiental: [puntuación], Social: [puntuación], Gobernanza: [puntuación], Riesgo: [puntuación]
 """
 prompt_perfil = PromptTemplate(template=plantilla_perfil, input_variables=["analisis"])
 cadena_perfil = LLMChain(llm=llm, prompt=prompt_perfil)
