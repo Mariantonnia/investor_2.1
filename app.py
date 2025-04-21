@@ -180,7 +180,6 @@ else:
             "Riesgo": int(re.search(r"Riesgo: (\d+)", perfil).group(1)),
         }
         st.session_state.perfil_valores = puntuaciones
-
     # Mostrar perfil y gráfico siempre
     with st.chat_message("bot", avatar="🤖"):
         st.write(f"**Perfil del inversor:** Ambiental: {st.session_state.perfil_valores['Ambiental']}, " +
